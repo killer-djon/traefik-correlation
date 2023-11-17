@@ -14,7 +14,7 @@ const (
 
 var (
 	logDebug = os.Stdout.WriteString
-	//logError = os.Stderr.WriteString
+	logError = os.Stderr.WriteString
 )
 
 // Config the plugin configuration.
@@ -25,7 +25,7 @@ type Config struct {
 // CreateConfig creates the default plugin configuration.
 func CreateConfig() *Config {
 	return &Config{
-		HeaderName: DEFAULT_HEADER_NAME,
+		HeaderName: "",
 	}
 }
 
@@ -37,6 +37,10 @@ type Correlation struct {
 
 // New created a new plugin.
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
+	if config.HeaderName == "" {
+		return nil, fmt.Errorf("headerName option cannot be empty")
+	}
+
 	return &Correlation{
 		next:       next,
 		name:       name,
@@ -46,9 +50,10 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 
 func (c *Correlation) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	var id = uuid.NewV4().String()
-	writer.Header().Add(c.headerName, id)
-	if request.Header.Get(c.headerName) != "" {
-		writer.Header().Add(c.headerName, request.Header.Get(c.headerName))
+
+	if request.Header.Get(c.headerName) == "" {
+		logError(fmt.Sprintf("HeaderName by value %s is empty", c.headerName))
+		request.Header.Add(c.headerName, id)
 	}
 
 	logDebug(fmt.Sprintf("All headers are incoming with correlationId: %s", id))
