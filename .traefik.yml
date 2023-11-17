@@ -1,0 +1,6 @@
+displayName: Test Plugin for kubernates
+type: middleware
+
+import: github.com/killer-djon/traefik-correlation
+
+summary: 'Traefik plugin to test headers'
