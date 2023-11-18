@@ -3,6 +3,8 @@ package traefik_correlation
 import (
 	"context"
 	"fmt"
+	"github.com/rs/zerolog/log"
+	_ "github.com/rs/zerolog/log"
 	"github.com/satori/go.uuid"
 	"net/http"
 	"os"
@@ -38,7 +40,7 @@ type Correlation struct {
 // New created a new plugin.
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
 	if config.HeaderName == "" {
-		return nil, fmt.Errorf("headerName option cannot be empty")
+		return nil, fmt.Errorf("[Correlation] headerName option cannot be empty")
 	}
 
 	return &Correlation{
@@ -49,13 +51,14 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 }
 
 func (c *Correlation) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	log.Debug().Msg("[Correlation] Try to serve next")
 	var id = uuid.NewV4().String()
 
 	if request.Header.Get(c.headerName) == "" {
-		logError(fmt.Sprintf("HeaderName by value %s is empty", c.headerName))
+		log.Debug().Msgf("[Correlation] HeaderName by value %s is empty", c.headerName)
 		request.Header.Add(c.headerName, id)
 	}
 
-	logDebug(fmt.Sprintf("All headers are incoming with correlationId: %s", id))
+	log.Debug().Msgf("[Correlation] All headers are incoming with correlationId: %s", id)
 	c.next.ServeHTTP(writer, request)
 }
