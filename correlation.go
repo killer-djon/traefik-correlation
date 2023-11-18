@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/satori/go.uuid"
+	"log"
 	"net/http"
 	"os"
 )
@@ -50,14 +51,19 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 }
 
 func (c *Correlation) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	logDebug("[Correlation] Try to serve next")
+	logDebug("[Correlation][StdOut] Try to serve next")
+	fmt.Println("[Correlation][Fmt] Try to serve next")
+	log.Println("[Correlation][Log] Try to serve next")
 	var id = uuid.NewV4().String()
 
-	if request.Header.Get(c.headerName) == "" {
+	request.Header.Add(c.headerName, id)
+	if request.Header.Get(c.headerName) != "" {
 		logDebug(fmt.Sprintf("[Correlation] HeaderName by value %s is empty", c.headerName))
-		request.Header.Add(c.headerName, id)
+		request.Header.Add(c.headerName, request.Header.Get(c.headerName))
 	}
 
+	fmt.Printf("[Correlation][Fmt] All headers are incoming with correlationId: %s\n", id)
+	log.Printf("[Correlation][Log] All headers are incoming with correlationId: %s\n", id)
 	logDebug(fmt.Sprintf("[Correlation] All headers are incoming with correlationId: %s", id))
 	c.next.ServeHTTP(writer, request)
 }
