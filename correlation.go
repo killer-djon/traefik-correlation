@@ -4,19 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/rs/zerolog/log"
-	_ "github.com/rs/zerolog/log"
 	"github.com/satori/go.uuid"
 	"net/http"
-	"os"
 )
 
 const (
 	DEFAULT_HEADER_NAME = "correlation-id"
-)
-
-var (
-	logDebug = os.Stdout.WriteString
-	logError = os.Stderr.WriteString
 )
 
 // Config the plugin configuration.
