@@ -45,13 +45,12 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 
 func (c *Correlation) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	fmt.Println("[Correlation][Fmt] Try to serve next", c.headerName, request.Header.Get(c.headerName))
-
 	var id = uuid.NewV4().String()
-	request.Header.Add(c.headerName, id)
 	if request.Header.Get(c.headerName) != "" {
-		fmt.Printf("[Correlation] HeaderName by value %s is empty", c.headerName)
-		request.Header.Add(c.headerName, request.Header.Get(c.headerName))
+		fmt.Printf("[Correlation] Add request header value: headerName=%s, and its value=%s", c.headerName, request.Header.Get(c.headerName))
+		id = request.Header.Get(c.headerName)
 	}
+	request.Header.Set(c.headerName, id)
 
 	fmt.Printf("[Correlation][Fmt] All headers are incoming with correlationId: %s", id)
 	c.next.ServeHTTP(writer, request)
