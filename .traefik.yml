@@ -1,9 +1,9 @@
-displayName: Test Plugin for kubernates for correlationId
+displayName: CorrelationID plugin
 type: middleware
 
 import: github.com/killer-djon/traefik-correlation
 
-summary: 'Traefik plugin to catch correlationId from header'
+summary: 'Traefik plugin correlationId to send correlation header for each request'
 
 testData:
-  headerName: "correlation-id"
+  headerName: "X-CORRELATION-ID"
