@@ -1,0 +1,9 @@
+displayName: CorrelationID plugin
+type: middleware
+
+import: github.com/killer-djon/traefik-correlation
+
+summary: 'Traefik plugin correlationId to send correlation header for each request'
+
+testData:
+  headerName: "X-CORRELATION-ID"

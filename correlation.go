@@ -5,53 +5,53 @@ import (
 	"fmt"
 	"github.com/satori/go.uuid"
 	"net/http"
-	"os"
 )
 
-var (
-	logDebug = os.Stdout.WriteString
-	//logError = os.Stderr.WriteString
+const (
+	DEFAULT_HEADER_NAME = "correlation-id"
 )
 
 // Config the plugin configuration.
 type Config struct {
-	Headers []string `yaml:"headers,omitempty" json:"headers,omitempty"`
+	HeaderName string `yaml:"headerName,omitempty" json:"header_name,omitempty"`
 }
 
 // CreateConfig creates the default plugin configuration.
 func CreateConfig() *Config {
 	return &Config{
-		Headers: []string{},
+		HeaderName: "",
 	}
 }
 
 type Correlation struct {
-	next    http.Handler
-	name    string
-	headers map[string]bool
+	next       http.Handler
+	name       string
+	headerName string
 }
 
 // New created a new plugin.
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
-	var headers = make(map[string]bool, len(config.Headers))
-
-	if len(config.Headers) > 0 {
-		logDebug(fmt.Sprintf("Finded %d count headers at request", len(config.Headers)))
-		for _, name := range config.Headers {
-			logDebug(fmt.Sprintf("Incoming header by name: %s", name))
-			headers[name] = true
-		}
+	if config.HeaderName == "" {
+		fmt.Println("[Correlation] headerName option cannot be empty")
+		return nil, fmt.Errorf("[Correlation] headerName option cannot be empty")
 	}
 
 	return &Correlation{
-		headers: headers,
-		next:    next,
-		name:    name,
+		next:       next,
+		name:       name,
+		headerName: config.HeaderName,
 	}, nil
 }
 
 func (c *Correlation) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	fmt.Println("[Correlation][Fmt] Try to serve next", c.headerName, request.Header.Get(c.headerName))
 	var id = uuid.NewV4().String()
-	logDebug(fmt.Sprintf("All headers are incoming with correlationId: %s", id))
+	if request.Header.Get(c.headerName) != "" {
+		fmt.Printf("[Correlation] Add request header value: headerName=%s, and its value=%s", c.headerName, request.Header.Get(c.headerName))
+		id = request.Header.Get(c.headerName)
+	}
+	request.Header.Set(c.headerName, id)
+
+	fmt.Printf("[Correlation][Fmt] All headers are incoming with correlationId: %s", id)
 	c.next.ServeHTTP(writer, request)
 }
